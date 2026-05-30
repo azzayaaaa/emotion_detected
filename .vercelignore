@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+captures/
+*.py[cod]
+
+app.py
+run.bat
+requirements.txt
+src/
