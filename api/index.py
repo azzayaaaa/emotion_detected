@@ -173,6 +173,7 @@ CAMERA_HTML = """<!doctype html>
         position: relative;
         width: min(1120px, 100%);
         aspect-ratio: 16 / 9;
+        max-height: calc(100vh - 120px);
         overflow: hidden;
         border: 1px solid rgba(148, 163, 184, 0.24);
         border-radius: 8px;
@@ -192,29 +193,47 @@ CAMERA_HTML = """<!doctype html>
         transform: scaleX(-1);
       }
 
-      .result {
-        position: absolute;
-        left: 18px;
-        bottom: 18px;
-        min-width: 180px;
-        padding: 14px 16px;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-        border-radius: 8px;
-        background: rgba(2, 6, 23, 0.72);
-        backdrop-filter: blur(10px);
+      @media (max-width: 720px) {
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 16px;
+        }
+
+        h1 {
+          font-size: 19px;
+        }
+
+        #status {
+          text-align: left;
+        }
+
+        main {
+          min-height: calc(100vh - 101px);
+          padding: 12px;
+        }
+
+        .stage {
+          width: 100%;
+          max-height: calc(100vh - 125px);
+          aspect-ratio: 3 / 4;
+        }
       }
 
-      .label {
-        color: #94a3b8;
-        font-size: 12px;
-        text-transform: uppercase;
-      }
+      @media (orientation: landscape) and (max-height: 520px) {
+        header {
+          min-height: 56px;
+          padding: 10px 16px;
+        }
 
-      #emotion {
-        margin-top: 4px;
-        font-size: 30px;
-        font-weight: 800;
-        line-height: 1.1;
+        main {
+          min-height: calc(100vh - 56px);
+          padding: 10px;
+        }
+
+        .stage {
+          max-height: calc(100vh - 76px);
+        }
       }
     </style>
   </head>
@@ -227,10 +246,6 @@ CAMERA_HTML = """<!doctype html>
       <section class="stage">
         <video id="video" autoplay muted playsinline></video>
         <canvas id="overlay"></canvas>
-        <div class="result">
-          <div class="label">Detected emotion</div>
-          <div id="emotion">Waiting</div>
-        </div>
       </section>
     </main>
 
@@ -240,7 +255,6 @@ CAMERA_HTML = """<!doctype html>
       const video = document.getElementById("video");
       const canvas = document.getElementById("overlay");
       const statusEl = document.getElementById("status");
-      const emotionEl = document.getElementById("emotion");
       const niceNames = {
         angry: "Angry",
         disgusted: "Disgusted",
@@ -274,7 +288,6 @@ CAMERA_HTML = """<!doctype html>
           detectLoop();
         } catch (error) {
           statusEl.textContent = "Camera or model failed to start";
-          emotionEl.textContent = "Blocked";
           console.error(error);
         }
       }
@@ -302,18 +315,30 @@ CAMERA_HTML = """<!doctype html>
             const box = resized.detection.box;
             const expressions = resized.expressions;
             const emotion = Object.entries(expressions).sort((a, b) => b[1] - a[1])[0][0];
+            const label = niceNames[emotion] || emotion;
+            const mirroredX = canvas.width - box.x - box.width;
+            const labelFontSize = Math.max(18, Math.round(canvas.width * 0.024));
+            const labelPaddingX = 10;
+            const labelPaddingY = 7;
+            const labelHeight = labelFontSize + labelPaddingY * 2;
+            const labelY = Math.max(0, box.y - labelHeight - 6);
 
-            emotionEl.textContent = niceNames[emotion] || emotion;
             context.strokeStyle = "#22c55e";
             context.lineWidth = 4;
-            context.strokeRect(
-              canvas.width - box.x - box.width,
-              box.y,
-              box.width,
-              box.height
-            );
+            context.strokeRect(mirroredX, box.y, box.width, box.height);
+
+            context.font = "800 " + labelFontSize + "px Arial, Helvetica, sans-serif";
+            const measuredLabelWidth = Math.ceil(context.measureText(label).width) + labelPaddingX * 2;
+            const safeLabelWidth = Math.min(measuredLabelWidth, canvas.width - mirroredX);
+
+            context.fillStyle = "#22c55e";
+            context.fillRect(mirroredX, labelY, safeLabelWidth, labelHeight);
+            context.fillStyle = "#04130a";
+            context.fillText(label, mirroredX + labelPaddingX, labelY + labelPaddingY + labelFontSize - 2);
+
+            statusEl.textContent = "Detected: " + label;
           } else {
-            emotionEl.textContent = "No face";
+            statusEl.textContent = "No face detected";
           }
 
           window.requestAnimationFrame(frame);
