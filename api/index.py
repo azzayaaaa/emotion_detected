@@ -256,13 +256,13 @@ CAMERA_HTML = """<!doctype html>
       const canvas = document.getElementById("overlay");
       const statusEl = document.getElementById("status");
       const niceNames = {
-        angry: "Angry",
-        disgusted: "Disgusted",
-        fearful: "Fearful",
-        happy: "Happy",
-        neutral: "Neutral",
-        sad: "Sad",
-        surprised: "Surprised"
+        angry: "\u0423\u0443\u0440\u0442\u0430\u0439",
+        disgusted: "\u0414\u0443\u0440\u0433\u04af\u0439\u0446\u0441\u044d\u043d",
+        fearful: "\u0410\u0439\u0441\u0430\u043d",
+        happy: "\u0411\u0430\u044f\u0440\u0442\u0430\u0439",
+        neutral: "\u0422\u0430\u0439\u0432\u0430\u043d",
+        sad: "\u0413\u0443\u043d\u0438\u0433\u0442\u0430\u0439",
+        surprised: "\u0413\u0430\u0439\u0445\u0441\u0430\u043d"
       };
 
       async function start() {
